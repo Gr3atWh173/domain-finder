@@ -10,7 +10,8 @@ python = "^3.8"
 Django = "^4.0.5"
 djangorestframework = "^3.13.1"
 django-filter = "^21.1"
-whois = "^0.9.15"
+requests = "^2.27.1"
+asyncwhois = "1.0.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.13.9"
