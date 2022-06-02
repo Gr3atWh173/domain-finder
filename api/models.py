@@ -5,6 +5,15 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Domain(models.Model):
+    """
+    Model class for a domain.
+
+    Attributes:
+        name (str): The name of the domain
+        tld (str): Thr top-level-domain name
+        registered (bool): If the domain is registered or not
+    """
+
     class Meta:
         managed = False
 
@@ -15,6 +24,14 @@ class Domain(models.Model):
 
 
 class User(AbstractUser):
+    """
+    Custom user model.
+
+    Attributes:
+        email (str): Email of the user
+        history (List[str]): User search historyt
+    """
+
     email = models.EmailField(unique=True, blank=False)
     history = fields.ArrayField(
         base_field=models.CharField(max_length=255), default=list

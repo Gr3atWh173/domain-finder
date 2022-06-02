@@ -1,3 +1,5 @@
+"""Contains the business logic of the app"""
+from typing import List
 from urllib.parse import urlparse
 import asyncio
 import asyncwhois
@@ -7,7 +9,16 @@ from .models import Domain
 POPULAR_TLDS = ["com", "org", "net", "dev", "io"]
 
 
-async def whois_query(domain_name):
+async def whois_query(domain_name: str):
+    """
+    Does a single whois query.
+
+    Args:
+        domain_name (str): the domain name to lookup.
+
+    Returns:
+        A tuple with the structure: ([name, tld, registered], error_msg)
+    """
     if not domain_name:
         return ([], "Missing required parameter.")
 
@@ -21,7 +32,16 @@ async def whois_query(domain_name):
     return ([name, tld, registered], "")
 
 
-async def similar_domains(domain):
+async def similar_domains(domain: Domain):
+    """
+    Finds similar domain names.
+
+    Args:
+        domain (Domain): the domain to find similar names to
+
+    Returns:
+        A list of similar unregistered domain names.
+    """
     tlds = POPULAR_TLDS
 
     names = [domain.name] + (_similar_names(domain.name))
@@ -33,7 +53,7 @@ async def similar_domains(domain):
     return _parse_results(results)
 
 
-def _split_domain_name(domain_name):
+def _split_domain_name(domain_name: str) -> tuple:
     parsed = urlparse(domain_name)
     full_domain = parsed.netloc or parsed.path
 
@@ -43,7 +63,7 @@ def _split_domain_name(domain_name):
     return (full_domain, "com")
 
 
-def _parse_results(results):
+def _parse_results(results: list) -> List[Domain]:
     parsed = []
     for i, (res, err) in enumerate(results):
         if err:
@@ -55,7 +75,7 @@ def _parse_results(results):
     return parsed
 
 
-def _create_whois_tasks(domain_names, tlds):
+def _create_whois_tasks(domain_names: list, tlds: list) -> List:
     tasks = []
     for name in domain_names:
         for tld in tlds:
@@ -64,11 +84,11 @@ def _create_whois_tasks(domain_names, tlds):
     return tasks
 
 
-def _exclude_errors(results):
+def _exclude_errors(results: list) -> List(tuple):
     return [p for p in results if isinstance(p, tuple)]
 
 
-def _similar_names(domain_name):
+def _similar_names(domain_name: str) -> List[str]:
     similar = []
 
     api_base = "https://api.datamuse.com"
