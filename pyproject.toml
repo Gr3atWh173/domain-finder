@@ -6,7 +6,7 @@ authors = ["Randeeep Singh"]
 license = "MIT"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "3.8.10"
 Django = "^4.0.5"
 djangorestframework = "^3.13.1"
 django-filter = "^21.1"
