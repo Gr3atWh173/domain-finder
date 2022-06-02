@@ -84,7 +84,7 @@ def _create_whois_tasks(domain_names: list, tlds: list) -> List:
     return tasks
 
 
-def _exclude_errors(results: list) -> List(tuple):
+def _exclude_errors(results: list) -> List[tuple]:
     return [p for p in results if isinstance(p, tuple)]
 
 
