@@ -14,6 +14,7 @@ requests = "^2.27.1"
 asyncwhois = "1.0.0"
 djoser = "^2.1.0"
 psycopg2 = "^2.9.3"
+Faker = "^13.12.0"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.13.9"

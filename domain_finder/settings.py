@@ -86,7 +86,8 @@ DATABASES = {
         "PASSWORD": "passwdpasswd",
         "HOST": "localhost",
         "PORT": "5432",
-    }
+        "TEST": {"NAME": "domain_finder_test"},
+    },
 }
 
 
