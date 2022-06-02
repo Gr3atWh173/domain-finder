@@ -12,6 +12,8 @@ djangorestframework = "^3.13.1"
 django-filter = "^21.1"
 requests = "^2.27.1"
 asyncwhois = "1.0.0"
+djoser = "^2.1.0"
+psycopg2 = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
 pylint = "^2.13.9"
