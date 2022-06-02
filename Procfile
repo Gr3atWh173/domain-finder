@@ -1,0 +1,1 @@
+web: gunicorn domain_finder.wsgi
