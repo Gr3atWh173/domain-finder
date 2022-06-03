@@ -37,4 +37,4 @@ class User(AbstractUser):
         base_field=models.CharField(max_length=255), default=list
     )
 
-    REQUIRED_FIELDS = ["email", "first_name", "history"]
+    REQUIRED_FIELDS = ["email", "history"]
