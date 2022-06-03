@@ -69,8 +69,7 @@ def _parse_results(results: list) -> List[Domain]:
         if err:
             continue
         name, tld, registered = res
-        if not registered:
-            parsed.append(Domain(id=i, name=name, tld=tld, registered=registered))
+        parsed.append(Domain(id=i, name=name, tld=tld, registered=registered))
 
     return parsed
 
