@@ -23,6 +23,11 @@ class RegistrationStatusTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.data["registered"])
 
+    def test_if_illformed_domain_is_reported(self):
+        response = self.client.get(self.endpoint_url + "this_is not okay.com")
+
+        self.assertEqual(response.status_code, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
 
 class SimilarDomainsTestCase(APITestCase):
     def setUp(self) -> None:

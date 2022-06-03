@@ -23,6 +23,8 @@ async def whois_query(domain_name: str):
         return ([], "Missing required parameter.")
 
     name, tld = _split_domain_name(domain_name)
+    if not _valid_domain_name(name):
+        return ([], "Invalid domain name")
 
     try:
         registered = bool(await asyncwhois.aio_whois_domain(domain_name))
@@ -107,3 +109,11 @@ def _similar_names(domain_name: str) -> List[str]:
             similar.append(word["word"])
 
     return similar
+
+
+def _valid_domain_name(name: str) -> bool:
+    for c in name:
+        if c.isalnum() or c == "-":
+            continue
+        return False
+    return True
