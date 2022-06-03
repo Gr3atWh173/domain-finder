@@ -14,14 +14,14 @@ class RegistrationStatusTestCase(APITestCase):
         response = self.client.get(self.endpoint_url + "google.com")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["registered"], True)
+        self.assertTrue(response.data["registered"])
 
     def test_if_unregistered_domain_is_unregistered(self):
         # this domain name generated in a cryptographically secure way by my cat
         response = self.client.get(self.endpoint_url + "hqweyvzdiohqwuetybasas.com")
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["registered"], False)
+        self.assertFalse(response.data["registered"])
 
 
 class SimilarDomainsTestCase(APITestCase):
@@ -32,11 +32,10 @@ class SimilarDomainsTestCase(APITestCase):
 
     def test_similar_generated_domains_are_almost_equal(self):
         response = self.client.get(self.endpoint_url + "google.com")
+        similars = [domain["name"] for domain in response.data]
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # FIXME: this won't stay unregistered forever. Come up with another way.
-        self.assertEqual(response.data[0]["name"], "googly")
+        self.assertTrue("googly" in similars)
 
 
 class UserAuthTestCase(APITestCase):
@@ -81,8 +80,8 @@ class UserAuthTestCase(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual("access" in response.data, True)
-        self.assertEqual("refresh" in response.data, True)
+        self.assertTrue("access" in response.data)
+        self.assertTrue("refresh" in response.data)
 
     def test_if_history_is_recording(self):
         User = get_user_model()
@@ -112,4 +111,4 @@ class UserAuthTestCase(APITestCase):
             follow=True,
         )
 
-        self.assertEqual("google.com" in me_response.data["history"], True)
+        self.assertTrue("google.com" in me_response.data["history"])
