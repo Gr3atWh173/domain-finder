@@ -114,6 +114,9 @@ def _similar_names(domain_name: str) -> List[str]:
 
 
 def _valid_domain_name(name: str) -> bool:
+    if len(name) > 63:
+        return False
+
     for c in name:
         if c.isalnum() or c == "-":
             continue
