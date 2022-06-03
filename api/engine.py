@@ -3,7 +3,8 @@ from typing import List
 from urllib.parse import urlparse
 import asyncio
 import asyncwhois
-import whois
+
+# import whois
 import requests
 from .models import Domain
 
@@ -29,7 +30,7 @@ async def whois_query(domain_name: str):
         return ([], "Invalid domain name")
 
     try:
-        registered = bool(await asyncwhois.aio_whois_domain(domain_name))
+        registered = bool(await asyncwhois.aio_whois_domain(f"{name}.{tld}"))
     except asyncwhois.errors.NotFoundError:
         registered = False
 
