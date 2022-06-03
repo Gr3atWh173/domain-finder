@@ -3,8 +3,7 @@ from typing import List
 from urllib.parse import urlparse
 import asyncio
 import asyncwhois
-
-# import whois
+import whois
 import requests
 from .models import Domain
 
@@ -26,7 +25,7 @@ async def whois_query(domain_name: str):
         return ([], "Missing required parameter.")
 
     name, tld = _split_domain_name(domain_name)
-    if not _valid_domain_name(name):
+    if not _valid_domain_name(name) or not _valid_tld(tld):
         return ([], "Invalid domain name")
 
     try:
@@ -120,3 +119,7 @@ def _valid_domain_name(name: str) -> bool:
             continue
         return False
     return True
+
+
+def _valid_tld(tld: str) -> bool:
+    return tld.replace(".", "_") in whois.TLD_RE
