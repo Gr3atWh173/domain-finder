@@ -7,7 +7,8 @@ import whois
 import requests
 from .models import Domain
 
-POPULAR_TLDS = [tld.replace("_", ".") for tld in whois.TLD_RE]
+# POPULAR_TLDS = [tld.replace("_", ".") for tld in whois.TLD_RE]
+POPULAR_TLDS = ["com", "org", "net", "dev", "co.in"]
 
 
 async def whois_query(domain_name: str):
