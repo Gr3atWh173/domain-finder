@@ -44,8 +44,8 @@ class SimilarDomains(APIView):
     """
 
     def get(self, request):
-        domain = request.GET.get("domain")
-        query_res, err = asyncio.run(engine.whois_query(domain))
+        domain_name = request.GET.get("domain")
+        query_res, err = asyncio.run(engine.whois_query(domain_name))
         if err:
             return Response(
                 status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"message": err}
@@ -56,5 +56,10 @@ class SimilarDomains(APIView):
 
         similar = asyncio.run(engine.similar_domains(domain))
         serializer = DomainSerializer(similar, many=True)
+
+        if request.user.is_authenticated:
+            user = User.objects.filter(username=request.user.username).get()
+            user.history.append(domain_name)
+            user.save()
 
         return Response(serializer.data)
