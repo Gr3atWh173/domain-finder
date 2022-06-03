@@ -37,8 +37,6 @@ class SimilarDomainsTestCase(APITestCase):
 
     def test_similar_generated_domains(self):
         response = self.client.get(self.endpoint_url + "google.com")
-        similars = [domain["name"] for domain in response.data]
-
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 

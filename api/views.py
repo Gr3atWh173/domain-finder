@@ -53,13 +53,16 @@ class SimilarDomains(APIView):
 
         name, tld, registered = query_res
         domain = Domain(name=name, tld=tld, registered=registered)
+        domain_serializer = DomainSerializer(domain, many=False)
 
         similar = asyncio.run(engine.similar_domains(domain))
-        serializer = DomainSerializer(similar, many=True)
+        similar_serializer = DomainSerializer(similar, many=True)
 
         if request.user.is_authenticated:
             user = User.objects.filter(username=request.user.username).get()
             user.history.append(domain_name)
             user.save()
 
-        return Response(serializer.data)
+        return Response(
+            {"domain": domain_serializer.data, "similar": similar_serializer.data}
+        )
