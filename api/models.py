@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.postgres import fields
-from django.core.validators import MinLengthValidator
 from django.contrib.auth.models import AbstractUser
 
 
@@ -18,8 +17,8 @@ class Domain(models.Model):
         managed = False
 
     # https://datatracker.ietf.org/doc/html/rfc1034
-    name = models.CharField(max_length=63, validators=[MinLengthValidator(3)])
-    tld = models.CharField(max_length=63, validators=[MinLengthValidator(3)])
+    name = models.CharField(max_length=63)
+    tld = models.CharField(max_length=63)
     registered = models.BooleanField(default=False)
 
 
