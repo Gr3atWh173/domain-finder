@@ -8,7 +8,7 @@ import requests
 from .models import Domain
 
 # POPULAR_TLDS = [tld.replace("_", ".") for tld in whois.TLD_RE]
-POPULAR_TLDS = ["com", "org", "net", "dev", "co.in"]
+POPULAR_TLDS = ["com", "org", "net", "dev", "co"]
 
 
 async def whois_query(domain_name: str):
@@ -47,8 +47,10 @@ async def similar_domains(domain: Domain):
         A list of similar unregistered domain names.
     """
     tlds = POPULAR_TLDS
+    if domain.tld in tlds:
+        tlds.remove(domain.tld)
 
-    names = [domain.name] + (_similar_names(domain.name))
+    names = set([domain.name] + _similar_names(domain.name))
 
     whois_tasks = _create_whois_tasks(names, tlds=tlds)
     results = await asyncio.gather(*whois_tasks, return_exceptions=True)
@@ -78,7 +80,7 @@ def _parse_results(results: list) -> List[Domain]:
     return parsed
 
 
-def _create_whois_tasks(domain_names: list, tlds: list) -> List:
+def _create_whois_tasks(domain_names: set, tlds: list) -> List:
     tasks = []
     for name in domain_names:
         for tld in tlds:
@@ -106,9 +108,8 @@ def _similar_names(domain_name: str) -> List[str]:
         words = resp.json()[0:3]
 
         for word in words:
-            if word == domain_name:
-                continue
-            similar.append(word["word"])
+            if word["word"] != domain_name:
+                similar.append(word["word"])
 
     return similar
 
