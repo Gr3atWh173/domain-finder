@@ -1,16 +1,11 @@
 import asyncio
-from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from .serializers import DomainSerializer
 
-from .models import Domain
-
 from . import engine
-
-User = get_user_model()
 
 
 class RegistrationStatus(APIView):
@@ -19,21 +14,22 @@ class RegistrationStatus(APIView):
     """
 
     def get(self, request):
-        domain_name = request.GET.get("domain")
-        query_res, err = asyncio.run(engine.whois_query(domain_name))
-        if err:
-            return Response(
-                status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"message": err}
-            )
-
-        name, tld, registered = query_res
-        domain = Domain(name=name, tld=tld, registered=registered)
-        serializer = DomainSerializer(domain, many=False)
+        name, tld = engine.split_domain_name(request.GET.get("domain"))
+        serializer = DomainSerializer(
+            data={
+                "name": name,
+                "tld": tld,
+                "registered": asyncio.run(engine.whois_query(name, tld)),
+            },
+            many=False,
+        )
 
         if request.user.is_authenticated:
-            user = User.objects.filter(username=request.user.username).get()
-            user.history.append(domain_name)
-            user.save()
+            request.user.history.append(f"{name}.{tld}")
+            request.user.save()
+
+        if not serializer.is_valid():
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=serializer.errors)
 
         return Response(serializer.data)
 
@@ -44,25 +40,28 @@ class SimilarDomains(APIView):
     """
 
     def get(self, request):
-        domain_name = request.GET.get("domain")
-        query_res, err = asyncio.run(engine.whois_query(domain_name))
-        if err:
-            return Response(
-                status=status.HTTP_422_UNPROCESSABLE_ENTITY, data={"message": err}
-            )
-
-        name, tld, registered = query_res
-        domain = Domain(name=name, tld=tld, registered=registered)
-        domain_serializer = DomainSerializer(domain, many=False)
-
-        similar = asyncio.run(engine.similar_domains(domain))
-        similar_serializer = DomainSerializer(similar, many=True)
+        name, tld = engine.split_domain_name(request.GET.get("domain"))
+        single_serializer = DomainSerializer(
+            data={
+                "name": name,
+                "tld": tld,
+                "registered": asyncio.run(engine.whois_query(name, tld)),
+            },
+            many=False,
+        )
 
         if request.user.is_authenticated:
-            user = User.objects.filter(username=request.user.username).get()
-            user.history.append(domain_name)
-            user.save()
+            request.user.history.append(f"{name}.{tld}")
+            request.user.save()
+
+        if not single_serializer.is_valid():
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST, data=single_serializer.errors
+            )
+
+        similar_domains = asyncio.run(engine.similar_domains(name, tld))
+        similar_serializer = DomainSerializer(similar_domains, many=True)
 
         return Response(
-            {"domain": domain_serializer.data, "similar": similar_serializer.data}
+            {"domain": single_serializer.data, "similar": similar_serializer.data}
         )

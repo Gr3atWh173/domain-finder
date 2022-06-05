@@ -3,7 +3,6 @@ from typing import List
 from urllib.parse import urlparse
 import asyncio
 import asyncwhois
-import whois
 import requests
 from .models import Domain
 
@@ -11,32 +10,24 @@ from .models import Domain
 POPULAR_TLDS = ["com", "org", "net", "dev", "co"]
 
 
-async def whois_query(domain_name: str):
+async def whois_query(name, tld):
     """
     Does a single whois query.
 
     Args:
-        domain_name (str): the domain name to lookup.
+        name (str): the domain name to lookup.
+        tld (str): the tld of the domain.
 
     Returns:
-        A tuple with the structure: ([name, tld, registered], error_msg)
+        True if the domain is registered, False otherwise.
     """
-    if not domain_name:
-        return ([], "Missing required parameter.")
-
-    name, tld = _split_domain_name(domain_name)
-    if not _valid_domain_name(name) or not _valid_tld(tld):
-        return ([], "Invalid domain name")
-
     try:
-        registered = bool(await asyncwhois.aio_whois_domain(f"{name}.{tld}"))
+        return bool(await asyncwhois.aio_whois_domain(f"{name}.{tld}"))
     except asyncwhois.errors.NotFoundError:
-        registered = False
-
-    return ([name, tld, registered], "")
+        return False
 
 
-async def similar_domains(domain: Domain):
+async def similar_domains(name, tld):
     """
     Finds similar domain names.
 
@@ -47,10 +38,10 @@ async def similar_domains(domain: Domain):
         A list of similar unregistered domain names.
     """
     tlds = POPULAR_TLDS
-    if domain.tld in tlds:
-        tlds.remove(domain.tld)
+    if tld in tlds:
+        tlds.remove(tld)
 
-    names = set([domain.name] + _similar_names(domain.name))
+    names = set([name] + _similar_names(name))
 
     whois_tasks = _create_whois_tasks(names, tlds=tlds)
     results = await asyncio.gather(*whois_tasks, return_exceptions=True)
@@ -59,7 +50,23 @@ async def similar_domains(domain: Domain):
     return _parse_results(results)
 
 
-def _split_domain_name(domain_name: str) -> tuple:
+async def _structured_whois(name, tld):
+    return (name, tld, await whois_query(name, tld))
+
+
+def split_domain_name(domain_name: str) -> tuple:
+    """
+    Splits a domain name into name and tld
+
+    Args:
+        domain_name (str): the domain name to split
+
+    Returns:
+        (name, tld)
+
+    Note:
+        If a TLD can't be ascertained, it defaults to 'com'
+    """
     parsed = urlparse(domain_name)
     full_domain = parsed.netloc or parsed.path
 
@@ -71,12 +78,8 @@ def _split_domain_name(domain_name: str) -> tuple:
 
 def _parse_results(results: list) -> List[Domain]:
     parsed = []
-    for i, (res, err) in enumerate(results):
-        if err:
-            continue
-        name, tld, registered = res
-        parsed.append(Domain(id=i, name=name, tld=tld, registered=registered))
-
+    for name, tld, registered in results:
+        parsed.append(Domain(name=name, tld=tld, registered=registered))
     return parsed
 
 
@@ -84,7 +87,7 @@ def _create_whois_tasks(domain_names: set, tlds: list) -> List:
     tasks = []
     for name in domain_names:
         for tld in tlds:
-            task = asyncio.create_task(whois_query(f"{name}.{tld}"))
+            task = asyncio.create_task(_structured_whois(name, tld))
             tasks.append(task)
     return tasks
 
@@ -112,18 +115,3 @@ def _similar_names(domain_name: str) -> List[str]:
                 similar.append(word["word"])
 
     return similar
-
-
-def _valid_domain_name(name: str) -> bool:
-    if not (1 < len(name) < 63):
-        return False
-
-    for c in name:
-        if c.isalnum() or c == "-":
-            continue
-        return False
-    return True
-
-
-def _valid_tld(tld: str) -> bool:
-    return tld.replace(".", "_") in whois.TLD_RE
