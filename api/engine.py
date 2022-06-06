@@ -4,6 +4,9 @@ from urllib.parse import urlparse
 import asyncio
 import asyncwhois
 import requests
+from django.core.exceptions import ValidationError
+
+from api.validators import domain_name_validator
 from .models import Domain
 
 # POPULAR_TLDS = [tld.replace("_", ".") for tld in whois.TLD_RE]
@@ -112,6 +115,13 @@ def _similar_names(domain_name: str) -> List[str]:
 
         for word in words:
             if word["word"] != domain_name:
-                similar.append("".join(word["word"].split()))
+                domain = "".join(word["word"].split())
+
+                try:
+                    domain_name_validator(domain)
+                except ValidationError:
+                    continue
+
+                similar.append(domain)
 
     return similar
