@@ -112,6 +112,6 @@ def _similar_names(domain_name: str) -> List[str]:
 
         for word in words:
             if word["word"] != domain_name:
-                similar.append(word["word"])
+                similar.append("".join(word["word"].split()))
 
     return similar
